@@ -33,13 +33,17 @@ type Crawler struct {
 	q *fetchbot.Queue
 }
 
-func errorHandler(ctx *fetchbot.Context, res *http.Response, err error) {
-	fmt.Printf("chuper - %s - error: %s %s - %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL(), err)
+func errorHandler() fetchbot.Handler {
+	return fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
+		if err == nil {
+			fmt.Printf("chuper - %s - error: %s %s - %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL(), err)
+		}
+	})
 }
 
 func Handler() fetchbot.Handler {
 	mux := fetchbot.NewMux()
-	mux.HandleErrors(fetchbot.HandlerFunc(errorHandler))
+	mux.HandleErrors(errorHandler())
 
 	mux.Response().Method("GET").ContentType("text/html").Handler(fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
 		if err == nil {
