@@ -13,11 +13,14 @@ var (
 )
 
 func main() {
-	crawler := chuper.New(crawlDelay, false)
+	crawler := chuper.New(crawlDelay)
+	// crawler.CrawlPoliteness = true
+	// crawler.HTTPClient = prepareTorHttpClient()
+
 	queue := crawler.Start()
 
 	if _, err := queue.SendStringGet(seed); err != nil {
-		fmt.Printf("chuper - error: %s\n", err)
+		fmt.Printf("seed - %s - error: %s\n", time.Now().Format(time.RFC3339), err)
 	}
 
 	crawler.Block()
