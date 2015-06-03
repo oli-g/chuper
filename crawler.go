@@ -1,7 +1,6 @@
 package chuper
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -10,8 +9,11 @@ import (
 )
 
 const (
+	DefaultCrawlDelay      = 2 * time.Second
 	DefaultCrawlPoliteness = false
 )
+
+// var DefaultCache =
 
 // The Cmd struct embeds the basic fetchbot.Cmd implementation.
 type Cmd struct {
@@ -27,43 +29,36 @@ func (c *Cmd) Source() *url.URL {
 type Crawler struct {
 	CrawlDelay      time.Duration
 	CrawlPoliteness bool
+	Cache           Cache
+	ErrorHandler    fetchbot.Handler
+	LogHandlerFunc  func(ctx *fetchbot.Context, res *http.Response, err error)
 	HTTPClient      fetchbot.Doer
 
-	f *fetchbot.Fetcher
-	q *fetchbot.Queue
-}
-
-func errorHandler() fetchbot.Handler {
-	return fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
-		if err == nil {
-			fmt.Printf("chuper - %s - error: %s %s - %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL(), err)
-		}
-	})
-}
-
-func Handler() fetchbot.Handler {
-	mux := fetchbot.NewMux()
-	mux.HandleErrors(errorHandler())
-
-	mux.Response().Method("GET").ContentType("text/html").Handler(fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
-		if err == nil {
-			fmt.Printf("chuper - %s - info: [%d] %s %s - %s\n", time.Now().Format(time.RFC3339), res.StatusCode, ctx.Cmd.Method(), ctx.Cmd.URL(), res.Header.Get("Content-Type"))
-		}
-	}))
-
-	return mux
+	mux *fetchbot.Mux
+	f   *fetchbot.Fetcher
+	q   *fetchbot.Queue
 }
 
 // New returns an initialized Crawler.
-func New(d time.Duration) *Crawler {
+func New() *Crawler {
 	return &Crawler{
-		CrawlDelay:      d,
+		CrawlDelay:      DefaultCrawlDelay,
 		CrawlPoliteness: DefaultCrawlPoliteness,
+		// Cache:           DefaultCache,
+		ErrorHandler:   DefaultErrorHandler,
+		LogHandlerFunc: DefaultLogHandlerFunc,
+		mux:            fetchbot.NewMux(),
 	}
 }
 
+// TODO: l'Handler chiama una successione di subhandlers che ritornano true/false.
+// Definire quindi un ProcessorFunc type
+
 func (c *Crawler) Start() *fetchbot.Queue {
-	f := fetchbot.New(Handler())
+	c.mux.HandleErrors(c.ErrorHandler)
+	l := NewLogHandler(c.mux, c.LogHandlerFunc)
+	f := fetchbot.New(l)
+	// h := crawlerHandler(c.Cache, c.ScraperHandler, c.EnqueuerHandler)
 
 	f.CrawlDelay = c.CrawlDelay
 	f.CrawlPoliteness = c.CrawlPoliteness

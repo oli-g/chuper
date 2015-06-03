@@ -13,9 +13,12 @@ var (
 )
 
 func main() {
-	crawler := chuper.New(crawlDelay)
+	crawler := chuper.New()
+	crawler.CrawlDelay = crawlDelay
 	// crawler.CrawlPoliteness = true
 	// crawler.HTTPClient = prepareTorHttpClient()
+
+	// crawler.Response(...).Register(handler1, handler2)
 
 	queue := crawler.Start()
 
