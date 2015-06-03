@@ -8,21 +8,24 @@ import (
 )
 
 var (
-	crawlDelay = 2 * time.Second
-	seed       = "http://www.gazzetta.it"
+	delay = 2 * time.Second
+	seeds = []string{
+		"http://www.gazzetta.it",
+		"http://www.repubblica.it",
+	}
 )
 
 func main() {
 	crawler := chuper.New()
-	crawler.CrawlDelay = crawlDelay
+	crawler.CrawlDelay = delay
 	// crawler.CrawlPoliteness = true
 	// crawler.HTTPClient = prepareTorHttpClient()
 
 	// crawler.Response(...).Register(handler1, handler2)
 
-	queue := crawler.Start()
+	crawler.Start()
 
-	if _, err := queue.SendStringGet(seed); err != nil {
+	if err := crawler.Enqueue("GET", seeds...); err != nil {
 		fmt.Printf("seed - %s - error: %s\n", time.Now().Format(time.RFC3339), err)
 	}
 

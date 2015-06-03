@@ -76,3 +76,8 @@ func (c *Crawler) Start() *fetchbot.Queue {
 func (c *Crawler) Block() {
 	c.q.Block()
 }
+
+func (c *Crawler) Enqueue(method string, rawurl ...string) error {
+	_, err := c.q.SendString(method, rawurl...)
+	return err
+}
