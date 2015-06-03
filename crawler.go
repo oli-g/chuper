@@ -2,37 +2,27 @@ package chuper
 
 import (
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/oli-g/fetchbot"
 )
 
 const (
-	DefaultCrawlDelay      = 2 * time.Second
+	DefaultCrawlDelay      = 5 * time.Second
 	DefaultCrawlPoliteness = false
 )
 
-// var DefaultCache =
-
-// The Cmd struct embeds the basic fetchbot.Cmd implementation.
-type Cmd struct {
-	*fetchbot.Cmd
-	S *url.URL
-}
-
-// Source returns the source of this command.
-func (c *Cmd) Source() *url.URL {
-	return c.S
-}
+var (
+	DefaultHTTPClient = http.DefaultClient
+)
 
 type Crawler struct {
 	CrawlDelay      time.Duration
 	CrawlPoliteness bool
+	HTTPClient      fetchbot.Doer
 	Cache           Cache
 	ErrorHandler    fetchbot.Handler
 	LogHandlerFunc  func(ctx *fetchbot.Context, res *http.Response, err error)
-	HTTPClient      fetchbot.Doer
 
 	mux *fetchbot.Mux
 	f   *fetchbot.Fetcher
@@ -44,6 +34,7 @@ func New() *Crawler {
 	return &Crawler{
 		CrawlDelay:      DefaultCrawlDelay,
 		CrawlPoliteness: DefaultCrawlPoliteness,
+		HTTPClient:      DefaultHTTPClient,
 		Cache:           DefaultCache,
 		ErrorHandler:    DefaultErrorHandler,
 		LogHandlerFunc:  DefaultLogHandlerFunc,

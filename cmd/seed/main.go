@@ -22,7 +22,8 @@ func main() {
 	crawler := chuper.New()
 	crawler.CrawlDelay = delay
 	// crawler.CrawlPoliteness = true
-	// crawler.HTTPClient = prepareTorHttpClient()
+	// crawler.Cache = nil
+	// crawler.HTTPClient = prepareTorHTTPClient()
 
 	// crawler.Response(...).Register(handler1, handler2)
 
