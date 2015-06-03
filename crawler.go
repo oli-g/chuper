@@ -44,10 +44,10 @@ func New() *Crawler {
 	return &Crawler{
 		CrawlDelay:      DefaultCrawlDelay,
 		CrawlPoliteness: DefaultCrawlPoliteness,
-		// Cache:           DefaultCache,
-		ErrorHandler:   DefaultErrorHandler,
-		LogHandlerFunc: DefaultLogHandlerFunc,
-		mux:            fetchbot.NewMux(),
+		Cache:           DefaultCache,
+		ErrorHandler:    DefaultErrorHandler,
+		LogHandlerFunc:  DefaultLogHandlerFunc,
+		mux:             fetchbot.NewMux(),
 	}
 }
 

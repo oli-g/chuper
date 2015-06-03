@@ -1,17 +1,74 @@
 package chuper
 
-// Cache is a contract for cache backends implementations
+import (
+	"errors"
+	"sync"
+)
+
+var (
+	ErrNotFound  = errors.New("not found")
+	DefaultCache = NewMemoryCache()
+)
+
 type Cache interface {
-	// Get returns single item from the backend if the requested item is not
-	// found, returns NotFound err
 	Get(key string) (interface{}, error)
 
-	// Set sets a single item to the backend
 	Set(key string, value interface{}) error
 
-	// SetNX sets a single item to the backend, if it does not already exist
 	SetNX(key string, value interface{}) (bool, error)
 
-	// Delete deletes single item from backend
 	Delete(key string) error
+}
+
+type MemoryCache struct {
+	sync.Mutex
+
+	items map[string]interface{}
+}
+
+func NewMemoryCache() *MemoryCache {
+	return &MemoryCache{
+		items: map[string]interface{}{},
+	}
+}
+
+func (r *MemoryCache) Get(key string) (interface{}, error) {
+	r.Lock()
+	defer r.Unlock()
+
+	value, ok := r.items[key]
+	if !ok {
+		return nil, ErrNotFound
+	}
+
+	return value, nil
+}
+
+func (r *MemoryCache) Set(key string, value interface{}) error {
+	r.Lock()
+	defer r.Unlock()
+
+	r.items[key] = value
+	return nil
+}
+
+func (r *MemoryCache) SetNX(key string, value interface{}) (bool, error) {
+	r.Lock()
+	defer r.Unlock()
+
+	_, ok := r.items[key]
+	if ok {
+		return false, nil
+	} else {
+		r.items[key] = value
+		return true, nil
+	}
+}
+
+func (r *MemoryCache) Delete(key string) error {
+	r.Lock()
+	defer r.Unlock()
+
+	delete(r.items, key)
+	return nil
 }

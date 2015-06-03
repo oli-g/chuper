@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/oli-g/cache"
 	"github.com/oli-g/chuper"
 )
 
@@ -24,7 +23,6 @@ func main() {
 	crawler.CrawlDelay = delay
 	// crawler.CrawlPoliteness = true
 	// crawler.HTTPClient = prepareTorHttpClient()
-	crawler.Cache = cache.NewMemory()
 
 	// crawler.Response(...).Register(handler1, handler2)
 
