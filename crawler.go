@@ -78,6 +78,23 @@ func (c *Crawler) Block() {
 }
 
 func (c *Crawler) Enqueue(method string, rawurl ...string) error {
-	_, err := c.q.SendString(method, rawurl...)
-	return err
+	for _, u := range rawurl {
+		ok := true
+		if c.mustCache() {
+			ok, _ = c.Cache.SetNX(u, true)
+		}
+		if ok {
+			if _, err := c.q.SendString(method, u); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (c *Crawler) mustCache() bool {
+	if c.Cache == nil {
+		return false
+	}
+	return true
 }

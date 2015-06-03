@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/oli-g/cache"
 	"github.com/oli-g/chuper"
 )
 
@@ -12,6 +13,9 @@ var (
 	seeds = []string{
 		"http://www.gazzetta.it",
 		"http://www.repubblica.it",
+		"http://www.gazzetta.it",
+		"http://www.repubblica.it",
+		"http://www.corriere.it",
 	}
 )
 
@@ -20,6 +24,7 @@ func main() {
 	crawler.CrawlDelay = delay
 	// crawler.CrawlPoliteness = true
 	// crawler.HTTPClient = prepareTorHttpClient()
+	crawler.Cache = cache.NewMemory()
 
 	// crawler.Response(...).Register(handler1, handler2)
 
