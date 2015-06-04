@@ -6,8 +6,7 @@ import (
 )
 
 var (
-	ErrNotFound  = errors.New("not found")
-	DefaultCache = NewMemoryCache()
+	ErrNotFound = errors.New("not found")
 )
 
 type Cache interface {

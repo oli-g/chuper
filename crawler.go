@@ -1,9 +1,11 @@
 package chuper
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/oli-g/fetchbot"
 )
 
@@ -14,6 +16,18 @@ const (
 
 var (
 	DefaultHTTPClient = http.DefaultClient
+
+	DefaultCache = NewMemoryCache()
+
+	DefaultErrorHandler = fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
+		fmt.Printf("chuper - %s - error: %s %s - %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL(), err)
+	})
+
+	DefaultLogHandlerFunc = func(ctx *fetchbot.Context, res *http.Response, err error) {
+		if err == nil {
+			fmt.Printf("chuper - %s - info: [%d] %s %s - %s\n", time.Now().Format(time.RFC3339), res.StatusCode, ctx.Cmd.Method(), ctx.Cmd.URL(), res.Header.Get("Content-Type"))
+		}
+	}
 )
 
 type Crawler struct {
@@ -42,21 +56,14 @@ func New() *Crawler {
 	}
 }
 
-// TODO: l'Handler chiama una successione di subhandlers che ritornano true/false.
-// Definire quindi un ProcessorFunc type
-
 func (c *Crawler) Start() *fetchbot.Queue {
 	c.mux.HandleErrors(c.ErrorHandler)
-	l := NewLogHandler(c.mux, c.LogHandlerFunc)
-	f := fetchbot.New(l)
-	// h := crawlerHandler(c.Cache, c.ScraperHandler, c.EnqueuerHandler)
+	l := newLogHandler(c.mux, c.LogHandlerFunc)
 
+	f := fetchbot.New(l)
 	f.CrawlDelay = c.CrawlDelay
 	f.CrawlPoliteness = c.CrawlPoliteness
-
-	if c.HTTPClient != nil {
-		f.HttpClient = c.HTTPClient
-	}
+	f.HttpClient = c.HTTPClient
 
 	c.f = f
 	c.q = c.f.Start()
@@ -83,9 +90,33 @@ func (c *Crawler) Enqueue(method string, rawurl ...string) error {
 	return nil
 }
 
+func (c *Crawler) Register(p Processor) {
+	h := newDocHandler(p, c.Cache)
+	c.mux.Response().Method("GET").ContentType("text/html").Handler(h)
+}
+
 func (c *Crawler) mustCache() bool {
 	if c.Cache == nil {
 		return false
 	}
 	return true
+}
+
+func newLogHandler(wrapped fetchbot.Handler, f func(ctx *fetchbot.Context, res *http.Response, err error)) fetchbot.Handler {
+	return fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
+		f(ctx, res, err)
+		wrapped.Handle(ctx, res, err)
+	})
+}
+
+func newDocHandler(p Processor, c Cache) fetchbot.Handler {
+	return fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
+		context := &Context{ctx, c}
+		doc, err := goquery.NewDocumentFromResponse(res)
+		if err != nil {
+			fmt.Printf("chuper - %s - error: %s %s - %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL(), err)
+			return
+		}
+		p.Process(context, doc)
+	})
 }

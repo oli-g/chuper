@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/oli-g/chuper"
 )
 
 var (
 	delay = 2 * time.Second
+
 	seeds = []string{
 		"http://www.gazzetta.it",
 		"http://www.repubblica.it",
@@ -16,6 +18,11 @@ var (
 		"http://www.repubblica.it",
 		"http://www.corriere.it",
 	}
+
+	processor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) error {
+		fmt.Printf("seed - %s - process\n", time.Now().Format(time.RFC3339))
+		return nil
+	})
 )
 
 func main() {
@@ -25,7 +32,7 @@ func main() {
 	// crawler.Cache = nil
 	// crawler.HTTPClient = prepareTorHTTPClient()
 
-	// crawler.Response(...).Register(handler1, handler2)
+	crawler.Register(processor)
 
 	crawler.Start()
 
