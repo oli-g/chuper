@@ -90,9 +90,57 @@ func (c *Crawler) Enqueue(method string, rawurl ...string) error {
 	return nil
 }
 
-func (c *Crawler) Register(p Processor) {
+type ResponseCriteria struct {
+	Method      string
+	ContentType string
+	Status      int
+	MinStatus   int
+	MaxStatus   int
+	Path        string
+	Host        string
+}
+
+func (c *Crawler) Match(r *ResponseCriteria) *fetchbot.ResponseMatcher {
+	m := c.mux.Response()
+
+	if r.Method != "" {
+		m.Method(r.Method)
+	}
+
+	if r.ContentType != "" {
+		m.ContentType(r.ContentType)
+	}
+
+	if r.Status != 0 {
+		m.Status(r.Status)
+	} else {
+		if r.MinStatus != 0 && r.MaxStatus != 0 {
+			m.StatusRange(r.MinStatus, r.MaxStatus)
+		} else {
+			if r.MinStatus != 0 {
+				m.Status(r.MinStatus)
+			}
+			if r.MaxStatus != 0 {
+				m.Status(r.MaxStatus)
+			}
+		}
+	}
+
+	if r.Path != "" {
+		m.Path(r.Path)
+	}
+
+	if r.Host != "" {
+		m.Host(r.Host)
+	}
+
+	return m
+}
+
+func (c *Crawler) Register(r *ResponseCriteria, p Processor) {
+	m := c.Match(r)
 	h := newDocHandler(p, c.Cache)
-	c.mux.Response().Method("GET").ContentType("text/html").Handler(h)
+	m.Handler(h)
 }
 
 func (c *Crawler) mustCache() bool {

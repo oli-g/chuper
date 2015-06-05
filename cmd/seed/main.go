@@ -19,8 +19,15 @@ var (
 		"http://www.corriere.it",
 	}
 
+	criteria = &chuper.ResponseCriteria{
+		Method:      "GET",
+		ContentType: "text/html",
+		Status:      200,
+		Host:        "www.gazzetta.it",
+	}
+
 	processor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) error {
-		fmt.Printf("seed - %s - process\n", time.Now().Format(time.RFC3339))
+		fmt.Printf("seed - %s - info: processing %s %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL())
 		return nil
 	})
 )
@@ -32,13 +39,9 @@ func main() {
 	// crawler.Cache = nil
 	// crawler.HTTPClient = prepareTorHTTPClient()
 
-	crawler.Register(processor)
-
+	crawler.Register(criteria, processor)
 	crawler.Start()
 
-	if err := crawler.Enqueue("GET", seeds...); err != nil {
-		fmt.Printf("seed - %s - error: %s\n", time.Now().Format(time.RFC3339), err)
-	}
-
+	crawler.Enqueue("GET", seeds...)
 	crawler.Block()
 }
