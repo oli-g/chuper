@@ -137,9 +137,9 @@ func (c *Crawler) Match(r *ResponseCriteria) *fetchbot.ResponseMatcher {
 	return m
 }
 
-func (c *Crawler) Register(r *ResponseCriteria, p Processor) {
-	m := c.Match(r)
-	h := newDocHandler(p, c.Cache)
+func (c *Crawler) Register(rc *ResponseCriteria, procs ...Processor) {
+	m := c.Match(rc)
+	h := newDocHandler(c.Cache, procs...)
 	m.Handler(h)
 }
 
@@ -157,14 +157,20 @@ func newLogHandler(wrapped fetchbot.Handler, f func(ctx *fetchbot.Context, res *
 	})
 }
 
-func newDocHandler(p Processor, c Cache) fetchbot.Handler {
+func newDocHandler(cache Cache, procs ...Processor) fetchbot.Handler {
 	return fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
-		context := &Context{ctx, c}
+		context := &Context{ctx, cache}
 		doc, err := goquery.NewDocumentFromResponse(res)
 		if err != nil {
 			fmt.Printf("chuper - %s - error: %s %s - %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL(), err)
 			return
 		}
-		p.Process(context, doc)
+		for _, p := range procs {
+			err = p.Process(context, doc)
+			if err != nil {
+				fmt.Printf("chuper - %s - error: %s %s - %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL(), err)
+				return
+			}
+		}
 	})
 }

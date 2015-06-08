@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -26,8 +27,18 @@ var (
 		Host:        "www.gazzetta.it",
 	}
 
-	processor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) error {
-		fmt.Printf("seed - %s - info: processing %s %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL())
+	firstProcessor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) error {
+		fmt.Printf("seed - %s - info: first %s %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL())
+		return nil
+	})
+
+	secondProcessor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) error {
+		return errors.New("second: error")
+
+	})
+
+	thirdProcessor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) error {
+		fmt.Printf("seed - %s - info: third %s %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL())
 		return nil
 	})
 )
@@ -39,7 +50,7 @@ func main() {
 	// crawler.Cache = nil
 	// crawler.HTTPClient = prepareTorHTTPClient()
 
-	crawler.Register(criteria, processor)
+	crawler.Register(criteria, firstProcessor, secondProcessor, thirdProcessor)
 	crawler.Start()
 
 	crawler.Enqueue("GET", seeds...)
