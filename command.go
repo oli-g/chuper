@@ -20,10 +20,3 @@ type Cmd struct {
 func (c *Cmd) SourceURL() *url.URL {
 	return c.S
 }
-
-func NewCmd(u *url.URL, m string, s *url.URL) *Cmd {
-	return &Cmd{
-		&fetchbot.Cmd{U: u, M: m},
-		s,
-	}
-}

@@ -105,7 +105,7 @@ func (c *Crawler) EnqueueWithSource(method string, URL string, sourceURL string)
 		if err != nil {
 			return ok, err
 		}
-		cmd := NewCmd(u, method, s)
+		cmd := Cmd{&fetchbot.Cmd{U: u, M: "GET"}, s}
 		err = c.q.Send(cmd)
 		return ok, err
 	}

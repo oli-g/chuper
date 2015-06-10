@@ -12,9 +12,8 @@ var (
 	delay = 2 * time.Second
 
 	seeds = []string{
-		"http://www.gazzetta.it",
 		"http://www.repubblica.it",
-		"http://www.gazzetta.it",
+		"http://www.corriere.it",
 		"http://www.repubblica.it",
 		"http://www.corriere.it",
 	}
@@ -27,7 +26,7 @@ var (
 	}
 
 	firstProcessor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) bool {
-		fmt.Printf("seed - %s - info: first %s %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL())
+		fmt.Printf("seed - %s - info: first %s %s from %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL(), ctx.SourceURL())
 		return true
 	})
 
@@ -54,5 +53,7 @@ func main() {
 	crawler.Start()
 
 	crawler.Enqueue("GET", seeds...)
+	crawler.EnqueueWithSource("GET", "http://www.gazzetta.it", "http://www.google.it")
+
 	crawler.Block()
 }
