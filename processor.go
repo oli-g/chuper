@@ -5,11 +5,11 @@ import (
 )
 
 type Processor interface {
-	Process(*Context, *goquery.Document) error
+	Process(*Context, *goquery.Document) bool
 }
 
-type ProcessorFunc func(*Context, *goquery.Document) error
+type ProcessorFunc func(*Context, *goquery.Document) bool
 
-func (p ProcessorFunc) Process(ctx *Context, doc *goquery.Document) error {
+func (p ProcessorFunc) Process(ctx *Context, doc *goquery.Document) bool {
 	return p(ctx, doc)
 }

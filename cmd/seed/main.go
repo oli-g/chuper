@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -27,19 +26,20 @@ var (
 		Host:        "www.gazzetta.it",
 	}
 
-	firstProcessor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) error {
+	firstProcessor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) bool {
 		fmt.Printf("seed - %s - info: first %s %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL())
-		return nil
+		return true
 	})
 
-	secondProcessor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) error {
-		return errors.New("second: error")
+	secondProcessor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) bool {
+		fmt.Printf("seed - %s - info: second %s %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL())
+		return false
 
 	})
 
-	thirdProcessor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) error {
+	thirdProcessor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) bool {
 		fmt.Printf("seed - %s - info: third %s %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL())
-		return nil
+		return true
 	})
 )
 

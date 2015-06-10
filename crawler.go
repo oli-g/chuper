@@ -188,9 +188,8 @@ func newDocHandler(cache Cache, procs ...Processor) fetchbot.Handler {
 			return
 		}
 		for _, p := range procs {
-			err = p.Process(context, doc)
-			if err != nil {
-				fmt.Printf("chuper - %s - error: %s %s - %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL(), err)
+			ok := p.Process(context, doc)
+			if !ok {
 				return
 			}
 		}
