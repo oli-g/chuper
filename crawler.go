@@ -3,6 +3,7 @@ package chuper
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -75,8 +76,8 @@ func (c *Crawler) Block() {
 	c.q.Block()
 }
 
-func (c *Crawler) Enqueue(method string, rawurl ...string) error {
-	for _, u := range rawurl {
+func (c *Crawler) Enqueue(method string, rawURL ...string) error {
+	for _, u := range rawURL {
 		ok := true
 		if c.mustCache() {
 			ok, _ = c.Cache.SetNX(u, true)
@@ -88,6 +89,27 @@ func (c *Crawler) Enqueue(method string, rawurl ...string) error {
 		}
 	}
 	return nil
+}
+
+func (c *Crawler) EnqueueWithSource(method string, URL string, sourceURL string) (bool, error) {
+	ok := true
+	if c.mustCache() {
+		ok, _ = c.Cache.SetNX(URL, true)
+	}
+	if ok {
+		u, err := url.Parse(URL)
+		if err != nil {
+			return ok, err
+		}
+		s, err := url.Parse(sourceURL)
+		if err != nil {
+			return ok, err
+		}
+		cmd := NewCmd(u, method, s)
+		err = c.q.Send(cmd)
+		return ok, err
+	}
+	return ok, nil
 }
 
 type ResponseCriteria struct {
