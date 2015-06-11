@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/PuerkitoBio/fetchbot"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/oli-g/fetchbot"
 )
 
 const (
@@ -63,7 +63,7 @@ func (c *Crawler) Start() *fetchbot.Queue {
 
 	f := fetchbot.New(l)
 	f.CrawlDelay = c.CrawlDelay
-	f.CrawlPoliteness = c.CrawlPoliteness
+	f.DisablePoliteness = !c.CrawlPoliteness
 	f.HttpClient = c.HTTPClient
 
 	c.f = f

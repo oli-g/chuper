@@ -3,7 +3,7 @@ package chuper
 import (
 	"net/url"
 
-	"github.com/oli-g/fetchbot"
+	"github.com/PuerkitoBio/fetchbot"
 )
 
 type Command interface {
