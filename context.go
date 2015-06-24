@@ -8,13 +8,14 @@ import (
 
 type Context struct {
 	*fetchbot.Context
-	C Cache
+	Cache Cache
 }
 
 func (c *Context) SourceURL() *url.URL {
 	switch cmd := c.Cmd.(type) {
 	case Cmd:
 		return cmd.SourceURL()
+	default:
+		return nil
 	}
-	return nil
 }
