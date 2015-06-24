@@ -33,6 +33,7 @@ var (
 
 type Crawler struct {
 	CrawlDelay      time.Duration
+	CrawlDuration   time.Duration
 	CrawlPoliteness bool
 	HTTPClient      fetchbot.Doer
 	Cache           Cache
@@ -68,6 +69,14 @@ func (c *Crawler) Start() *fetchbot.Queue {
 
 	c.f = f
 	c.q = c.f.Start()
+
+	if c.CrawlDuration > 0 {
+		go func() {
+			t := time.After(c.CrawlDuration)
+			<-t
+			c.q.Close()
+		}()
+	}
 
 	return c.q
 }
