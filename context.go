@@ -8,7 +8,19 @@ import (
 
 type Context struct {
 	*fetchbot.Context
-	Cache Cache
+	C Cache
+}
+
+func (c *Context) Cache() Cache {
+	return c.C
+}
+
+func (c *Context) Queue() *fetchbot.Queue {
+	return c.Q
+}
+
+func (c *Context) URL() *url.URL {
+	return c.Cmd.URL()
 }
 
 func (c *Context) SourceURL() *url.URL {
