@@ -85,6 +85,10 @@ func (c *Crawler) Block() {
 	c.q.Block()
 }
 
+func (c *Crawler) Finish() {
+	c.q.Close()
+}
+
 func (c *Crawler) Enqueue(method string, rawURL ...string) error {
 	for _, u := range rawURL {
 		ok := true
