@@ -13,6 +13,7 @@ import (
 const (
 	DefaultCrawlDelay      = 5 * time.Second
 	DefaultCrawlPoliteness = false
+	DefaultUserAgent       = fetchbot.DefaultUserAgent
 )
 
 var (
@@ -38,6 +39,7 @@ type Crawler struct {
 	HTTPClient      fetchbot.Doer
 	Cache           Cache
 	ErrorHandler    fetchbot.Handler
+	UserAgent       string
 	LogHandlerFunc  func(ctx *fetchbot.Context, res *http.Response, err error)
 
 	mux *fetchbot.Mux
@@ -53,6 +55,7 @@ func New() *Crawler {
 		HTTPClient:      DefaultHTTPClient,
 		Cache:           DefaultCache,
 		ErrorHandler:    DefaultErrorHandler,
+		UserAgent:       DefaultUserAgent,
 		LogHandlerFunc:  DefaultLogHandlerFunc,
 		mux:             fetchbot.NewMux(),
 	}
@@ -66,6 +69,7 @@ func (c *Crawler) Start() *fetchbot.Queue {
 	f.CrawlDelay = c.CrawlDelay
 	f.DisablePoliteness = !c.CrawlPoliteness
 	f.HttpClient = c.HTTPClient
+	f.UserAgent = c.UserAgent
 
 	c.f = f
 	c.q = c.f.Start()
