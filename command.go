@@ -20,3 +20,17 @@ type Cmd struct {
 func (c *Cmd) SourceURL() *url.URL {
 	return c.S
 }
+
+type CmdBasicAuth struct {
+	*fetchbot.Cmd
+	S          *url.URL
+	user, pass string
+}
+
+func (c *CmdBasicAuth) SourceURL() *url.URL {
+	return c.S
+}
+
+func (c *CmdBasicAuth) BasicAuth() (string, string) {
+	return c.user, c.pass
+}
