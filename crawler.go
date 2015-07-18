@@ -144,13 +144,13 @@ func (c *Crawler) EnqueueWithSource(method string, URL string, sourceURL string)
 		}
 
 		if c.BasicAuthUser != "" && c.BasicAuthPass != "" {
-			cmd := &CmdBasicAuth{&fetchbot.Cmd{U: u, M: "GET"}, s, c.BasicAuthUser, c.BasicAuthPass}
+			cmd := &CmdBasicAuth{&fetchbot.Cmd{U: u, M: method}, s, c.BasicAuthUser, c.BasicAuthPass}
 
 			if err := c.q.Send(cmd); err != nil {
 				return ok, err
 			}
 		} else {
-			cmd := &Cmd{&fetchbot.Cmd{U: u, M: "GET"}, s}
+			cmd := &Cmd{&fetchbot.Cmd{U: u, M: method}, s}
 
 			if err := c.q.Send(cmd); err != nil {
 				return ok, err
