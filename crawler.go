@@ -111,11 +111,14 @@ func (c *Crawler) Enqueue(method string, rawURL ...string) error {
 
 			if c.BasicAuthUser != "" && c.BasicAuthPass != "" {
 				cmd := CmdBasicAuth{&fetchbot.Cmd{U: url, M: "GET"}, url, c.BasicAuthUser, c.BasicAuthPass}
-				err = c.q.Send(cmd)
-				return err
-			} else {
 
-				if err := c.q.Send(&fetchbot.Cmd{U: url, M: "GET"}); err != nil {
+				if err := c.q.Send(cmd); err != nil {
+					return err
+				}
+			} else {
+				cmd := &fetchbot.Cmd{U: url, M: "GET"}
+
+				if err := c.q.Send(cmd); err != nil {
 					return err
 				}
 			}
@@ -142,12 +145,16 @@ func (c *Crawler) EnqueueWithSource(method string, URL string, sourceURL string)
 
 		if c.BasicAuthUser != "" && c.BasicAuthPass != "" {
 			cmd := CmdBasicAuth{&fetchbot.Cmd{U: u, M: "GET"}, s, c.BasicAuthUser, c.BasicAuthPass}
-			err = c.q.Send(cmd)
-			return ok, err
+
+			if err := c.q.Send(cmd); err != nil {
+				return ok, err
+			}
 		} else {
 			cmd := Cmd{&fetchbot.Cmd{U: u, M: "GET"}, s}
-			err = c.q.Send(cmd)
-			return ok, err
+
+			if err := c.q.Send(cmd); err != nil {
+				return ok, err
+			}
 		}
 	}
 
