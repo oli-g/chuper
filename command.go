@@ -31,6 +31,6 @@ func (c *CmdBasicAuth) SourceURL() *url.URL {
 	return c.S
 }
 
-func (c *CmdBasicAuth) BasicAuth() (string, string) {
+func (c *CmdBasicAuth) BasicAuth() (user string, pwd string) {
 	return c.user, c.pass
 }
