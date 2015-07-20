@@ -25,7 +25,9 @@ func (c *Context) URL() *url.URL {
 
 func (c *Context) SourceURL() *url.URL {
 	switch cmd := c.Cmd.(type) {
-	case Cmd:
+	case *Cmd:
+		return cmd.SourceURL()
+	case *CmdBasicAuth:
 		return cmd.SourceURL()
 	default:
 		return nil
