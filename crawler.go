@@ -63,7 +63,7 @@ func New() *Crawler {
 	}
 }
 
-func (c *Crawler) Start() *fetchbot.Queue {
+func (c *Crawler) Start() Enqueuer {
 	c.mux.HandleErrors(c.ErrorHandler)
 	l := newLogHandler(c.mux, c.LogHandlerFunc)
 
@@ -84,7 +84,7 @@ func (c *Crawler) Start() *fetchbot.Queue {
 		}()
 	}
 
-	return c.q
+	return &Queue{c.q}
 }
 
 func (c *Crawler) Block() {
@@ -221,7 +221,7 @@ func newLogHandler(wrapped fetchbot.Handler, f func(ctx *fetchbot.Context, res *
 
 func newDocHandler(cache Cache, procs ...Processor) fetchbot.Handler {
 	return fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
-		context := &Context{ctx, cache}
+		context := &Ctx{ctx, cache}
 		doc, err := goquery.NewDocumentFromResponse(res)
 		if err != nil {
 			fmt.Printf("chuper - %s - error: %s %s - %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL(), err)
