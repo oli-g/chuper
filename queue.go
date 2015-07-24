@@ -25,6 +25,7 @@ func (q *Queue) Enqueue(method, URL, sourceURL string) error {
 	if err != nil {
 		return err
 	}
+
 	cmd := &Cmd{&fetchbot.Cmd{U: u, M: method}, s}
 	if err = q.Send(cmd); err != nil {
 		return err
@@ -33,6 +34,10 @@ func (q *Queue) Enqueue(method, URL, sourceURL string) error {
 }
 
 func (q *Queue) EnqueueWithBasicAuth(method, URL, sourceURL, user, password string) error {
+	if user == "" && password == "" {
+		return q.Enqueue(method, URL, sourceURL)
+	}
+
 	u, err := url.Parse(URL)
 	if err != nil {
 		return err
@@ -41,6 +46,7 @@ func (q *Queue) EnqueueWithBasicAuth(method, URL, sourceURL, user, password stri
 	if err != nil {
 		return err
 	}
+
 	cmd := &CmdBasicAuth{&fetchbot.Cmd{U: u, M: method}, s, user, password}
 	if err = q.Send(cmd); err != nil {
 		return err
