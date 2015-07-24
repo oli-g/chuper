@@ -145,13 +145,6 @@ func (c *Crawler) Register(rc *ResponseCriteria, procs ...Processor) {
 	m.Handler(h)
 }
 
-func (c *Crawler) mustCache() bool {
-	if c.Cache == nil {
-		return false
-	}
-	return true
-}
-
 func newLogHandler(wrapped fetchbot.Handler, f func(ctx *fetchbot.Context, res *http.Response, err error)) fetchbot.Handler {
 	return fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
 		f(ctx, res, err)
