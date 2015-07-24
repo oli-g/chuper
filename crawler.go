@@ -40,8 +40,6 @@ type Crawler struct {
 	Cache           Cache
 	ErrorHandler    fetchbot.Handler
 	UserAgent       string
-	BasicAuthUser   string
-	BasicAuthPass   string
 	LogHandlerFunc  func(ctx *fetchbot.Context, res *http.Response, err error)
 
 	mux *fetchbot.Mux
