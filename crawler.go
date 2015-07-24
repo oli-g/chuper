@@ -93,63 +93,6 @@ func (c *Crawler) Finish() {
 	c.q.Close()
 }
 
-func (c *Crawler) Enqueue(method string, rawURL ...string) error {
-	for _, u := range rawURL {
-		url, err := url.Parse(u)
-		if err != nil {
-			return err
-		}
-
-		ok := true
-		if c.mustCache() {
-			ok, _ = c.Cache.SetNX(u, true)
-		}
-
-		if ok {
-			var cmd fetchbot.Command
-			if c.BasicAuthUser != "" && c.BasicAuthPass != "" {
-				cmd = &CmdBasicAuth{&fetchbot.Cmd{U: url, M: method}, url, c.BasicAuthUser, c.BasicAuthPass}
-			} else {
-				cmd = &fetchbot.Cmd{U: url, M: method}
-			}
-			if err := c.q.Send(cmd); err != nil {
-				return err
-			}
-
-		}
-	}
-	return nil
-}
-
-func (c *Crawler) EnqueueWithSource(method string, URL string, sourceURL string) (bool, error) {
-	ok := true
-	if c.mustCache() {
-		ok, _ = c.Cache.SetNX(URL, true)
-	}
-	if ok {
-		u, err := url.Parse(URL)
-		if err != nil {
-			return ok, err
-		}
-		s, err := url.Parse(sourceURL)
-		if err != nil {
-			return ok, err
-		}
-
-		var cmd fetchbot.Command
-		if c.BasicAuthUser != "" && c.BasicAuthPass != "" {
-			cmd = &CmdBasicAuth{&fetchbot.Cmd{U: u, M: method}, s, c.BasicAuthUser, c.BasicAuthPass}
-		} else {
-			cmd = &Cmd{&fetchbot.Cmd{U: u, M: method}, s}
-		}
-		if err := c.q.Send(cmd); err != nil {
-			return ok, err
-		}
-	}
-
-	return ok, nil
-}
-
 type ResponseCriteria struct {
 	Method      string
 	ContentType string
