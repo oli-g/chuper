@@ -4,11 +4,13 @@ import (
 	"net/url"
 
 	"github.com/PuerkitoBio/fetchbot"
+	"github.com/Sirupsen/logrus"
 )
 
 type Context interface {
 	Cache() Cache
 	Queue() Enqueuer
+	Log(fields map[string]interface{}) *logrus.Entry
 	URL() *url.URL
 	SourceURL() *url.URL
 }
@@ -16,6 +18,7 @@ type Context interface {
 type Ctx struct {
 	*fetchbot.Context
 	C Cache
+	L *logrus.Logger
 }
 
 func (c *Ctx) Cache() Cache {
@@ -24,6 +27,14 @@ func (c *Ctx) Cache() Cache {
 
 func (c *Ctx) Queue() Enqueuer {
 	return &Queue{c.Q}
+}
+
+func (c *Ctx) Log(fields map[string]interface{}) *logrus.Entry {
+	data := logrus.Fields{}
+	for k, v := range fields {
+		data[k] = v
+	}
+	return c.L.WithFields(data)
 }
 
 func (c *Ctx) URL() *url.URL {
