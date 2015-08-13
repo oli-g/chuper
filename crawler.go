@@ -3,7 +3,6 @@ package chuper
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/PuerkitoBio/fetchbot"
@@ -40,8 +39,6 @@ type Crawler struct {
 	Cache           Cache
 	ErrorHandler    fetchbot.Handler
 	UserAgent       string
-	BasicAuthUser   string
-	BasicAuthPass   string
 	LogHandlerFunc  func(ctx *fetchbot.Context, res *http.Response, err error)
 
 	mux *fetchbot.Mux
@@ -63,7 +60,7 @@ func New() *Crawler {
 	}
 }
 
-func (c *Crawler) Start() *fetchbot.Queue {
+func (c *Crawler) Start() Enqueuer {
 	c.mux.HandleErrors(c.ErrorHandler)
 	l := newLogHandler(c.mux, c.LogHandlerFunc)
 
@@ -84,7 +81,7 @@ func (c *Crawler) Start() *fetchbot.Queue {
 		}()
 	}
 
-	return c.q
+	return &Queue{c.q}
 }
 
 func (c *Crawler) Block() {
@@ -93,63 +90,6 @@ func (c *Crawler) Block() {
 
 func (c *Crawler) Finish() {
 	c.q.Close()
-}
-
-func (c *Crawler) Enqueue(method string, rawURL ...string) error {
-	for _, u := range rawURL {
-		url, err := url.Parse(u)
-		if err != nil {
-			return err
-		}
-
-		ok := true
-		if c.mustCache() {
-			ok, _ = c.Cache.SetNX(u, true)
-		}
-
-		if ok {
-			var cmd fetchbot.Command
-			if c.BasicAuthUser != "" && c.BasicAuthPass != "" {
-				cmd = &CmdBasicAuth{&fetchbot.Cmd{U: url, M: method}, url, c.BasicAuthUser, c.BasicAuthPass}
-			} else {
-				cmd = &fetchbot.Cmd{U: url, M: method}
-			}
-			if err := c.q.Send(cmd); err != nil {
-				return err
-			}
-
-		}
-	}
-	return nil
-}
-
-func (c *Crawler) EnqueueWithSource(method string, URL string, sourceURL string) (bool, error) {
-	ok := true
-	if c.mustCache() {
-		ok, _ = c.Cache.SetNX(URL, true)
-	}
-	if ok {
-		u, err := url.Parse(URL)
-		if err != nil {
-			return ok, err
-		}
-		s, err := url.Parse(sourceURL)
-		if err != nil {
-			return ok, err
-		}
-
-		var cmd fetchbot.Command
-		if c.BasicAuthUser != "" && c.BasicAuthPass != "" {
-			cmd = &CmdBasicAuth{&fetchbot.Cmd{U: u, M: method}, s, c.BasicAuthUser, c.BasicAuthPass}
-		} else {
-			cmd = &Cmd{&fetchbot.Cmd{U: u, M: method}, s}
-		}
-		if err := c.q.Send(cmd); err != nil {
-			return ok, err
-		}
-	}
-
-	return ok, nil
 }
 
 type ResponseCriteria struct {
@@ -205,13 +145,6 @@ func (c *Crawler) Register(rc *ResponseCriteria, procs ...Processor) {
 	m.Handler(h)
 }
 
-func (c *Crawler) mustCache() bool {
-	if c.Cache == nil {
-		return false
-	}
-	return true
-}
-
 func newLogHandler(wrapped fetchbot.Handler, f func(ctx *fetchbot.Context, res *http.Response, err error)) fetchbot.Handler {
 	return fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
 		f(ctx, res, err)
@@ -221,7 +154,7 @@ func newLogHandler(wrapped fetchbot.Handler, f func(ctx *fetchbot.Context, res *
 
 func newDocHandler(cache Cache, procs ...Processor) fetchbot.Handler {
 	return fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
-		context := &Context{ctx, cache}
+		context := &Ctx{ctx, cache}
 		doc, err := goquery.NewDocumentFromResponse(res)
 		if err != nil {
 			fmt.Printf("chuper - %s - error: %s %s - %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL(), err)
