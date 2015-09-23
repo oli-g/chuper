@@ -191,12 +191,13 @@ func (c *Crawler) newErrorHandler() fetchbot.Handler {
 
 func (c *Crawler) newRequestHandler() fetchbot.Handler {
 	return fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
-		c.Logger.WithFields(logrus.Fields{
-			"method":       ctx.Cmd.Method(),
-			"status":       res.StatusCode,
-			"content_type": res.Header.Get("Content-Type"),
-		}).Info(ctx.Cmd.URL())
-
+		if res != nil {
+			c.Logger.WithFields(logrus.Fields{
+				"method":       ctx.Cmd.Method(),
+				"status":       res.StatusCode,
+				"content_type": res.Header.Get("Content-Type"),
+			}).Info(ctx.Cmd.URL())
+		}
 		c.mux.Handle(ctx, res, err)
 	})
 }
