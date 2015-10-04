@@ -12,6 +12,7 @@ type Context interface {
 	Queue() Enqueuer
 	Log(fields map[string]interface{}) *logrus.Entry
 	URL() *url.URL
+	Method() string
 	SourceURL() *url.URL
 }
 
@@ -39,6 +40,10 @@ func (c *Ctx) Log(fields map[string]interface{}) *logrus.Entry {
 
 func (c *Ctx) URL() *url.URL {
 	return c.Cmd.URL()
+}
+
+func (c *Ctx) Method() string {
+	return c.Cmd.Method()
 }
 
 func (c *Ctx) SourceURL() *url.URL {
