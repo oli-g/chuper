@@ -192,11 +192,13 @@ func (c *Crawler) newErrorHandler() fetchbot.Handler {
 func (c *Crawler) newRequestHandler() fetchbot.Handler {
 	return fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
 		if res != nil {
+			context := &Ctx{ctx, c.Cache, c.Logger}
 			c.Logger.WithFields(logrus.Fields{
-				"method":       ctx.Cmd.Method(),
+				"method":       context.Method(),
 				"status":       res.StatusCode,
 				"content_type": res.Header.Get("Content-Type"),
-			}).Info(ctx.Cmd.URL())
+				"depth":        context.Depth(),
+			}).Info(context.URL())
 		}
 		c.mux.Handle(ctx, res, err)
 	})
@@ -208,8 +210,8 @@ func (c *Crawler) newHTMLHandler(procs ...Processor) fetchbot.Handler {
 		doc, err := goquery.NewDocumentFromResponse(res)
 		if err != nil {
 			c.Logger.WithFields(logrus.Fields{
-				"url":    ctx.Cmd.URL(),
-				"method": ctx.Cmd.Method(),
+				"url":    context.URL(),
+				"method": context.Method(),
 			}).Error(err)
 			return
 		}

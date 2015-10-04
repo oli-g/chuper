@@ -10,6 +10,8 @@ import (
 var (
 	delay = 2 * time.Second
 
+	depth = 0
+
 	seeds = []string{
 		"http://www.repubblica.it",
 		"http://www.corriere.it",
@@ -59,7 +61,8 @@ func main() {
 	q := crawler.Start()
 
 	for _, u := range seeds {
-		q.Enqueue("GET", u, "www.google.com")
+		q.Enqueue("GET", u, "www.google.com", depth)
+		depth++
 	}
 
 	crawler.Finish()
