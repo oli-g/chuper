@@ -12,7 +12,9 @@ type Context interface {
 	Queue() Enqueuer
 	Log(fields map[string]interface{}) *logrus.Entry
 	URL() *url.URL
+	Method() string
 	SourceURL() *url.URL
+	Depth() int
 }
 
 type Ctx struct {
@@ -41,6 +43,10 @@ func (c *Ctx) URL() *url.URL {
 	return c.Cmd.URL()
 }
 
+func (c *Ctx) Method() string {
+	return c.Cmd.Method()
+}
+
 func (c *Ctx) SourceURL() *url.URL {
 	switch cmd := c.Cmd.(type) {
 	case *Cmd:
@@ -49,5 +55,16 @@ func (c *Ctx) SourceURL() *url.URL {
 		return cmd.SourceURL()
 	default:
 		return nil
+	}
+}
+
+func (c *Ctx) Depth() int {
+	switch cmd := c.Cmd.(type) {
+	case *Cmd:
+		return cmd.Depth()
+	case *CmdBasicAuth:
+		return cmd.Depth()
+	default:
+		return 0
 	}
 }

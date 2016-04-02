@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -11,11 +10,14 @@ import (
 var (
 	delay = 2 * time.Second
 
+	depth = 0
+
 	seeds = []string{
 		"http://www.repubblica.it",
 		"http://www.corriere.it",
 		"http://www.repubblica.it",
 		"http://www.corriere.it",
+		"http://www.gazzetta.it",
 	}
 
 	criteria = &chuper.ResponseCriteria{
@@ -25,19 +27,28 @@ var (
 		Host:        "www.gazzetta.it",
 	}
 
-	firstProcessor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) bool {
-		fmt.Printf("seed - %s - info: first %s %s from %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL(), ctx.SourceURL())
+	firstProcessor = chuper.ProcessorFunc(func(ctx chuper.Context, doc *goquery.Document) bool {
+		ctx.Log(map[string]interface{}{
+			"url":    ctx.URL().String(),
+			"source": ctx.SourceURL().String(),
+		}).Info("First processor")
 		return true
 	})
 
-	secondProcessor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) bool {
-		fmt.Printf("seed - %s - info: second %s %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL())
+	secondProcessor = chuper.ProcessorFunc(func(ctx chuper.Context, doc *goquery.Document) bool {
+		ctx.Log(map[string]interface{}{
+			"url":    ctx.URL().String(),
+			"source": ctx.SourceURL().String(),
+		}).Info("Second processor")
 		return false
 
 	})
 
-	thirdProcessor = chuper.ProcessorFunc(func(ctx *chuper.Context, doc *goquery.Document) bool {
-		fmt.Printf("seed - %s - info: third %s %s\n", time.Now().Format(time.RFC3339), ctx.Cmd.Method(), ctx.Cmd.URL())
+	thirdProcessor = chuper.ProcessorFunc(func(ctx chuper.Context, doc *goquery.Document) bool {
+		ctx.Log(map[string]interface{}{
+			"url":    ctx.URL().String(),
+			"source": ctx.SourceURL().String(),
+		}).Info("Third processor")
 		return true
 	})
 )
@@ -45,15 +56,14 @@ var (
 func main() {
 	crawler := chuper.New()
 	crawler.CrawlDelay = delay
-	// crawler.CrawlPoliteness = true
-	// crawler.Cache = nil
-	// crawler.HTTPClient = prepareTorHTTPClient()
 
 	crawler.Register(criteria, firstProcessor, secondProcessor, thirdProcessor)
-	crawler.Start()
+	q := crawler.Start()
 
-	crawler.Enqueue("GET", seeds...)
-	crawler.EnqueueWithSource("GET", "http://www.gazzetta.it", "http://www.google.it")
+	for _, u := range seeds {
+		q.Enqueue("GET", u, "www.google.com", depth)
+		depth++
+	}
 
-	crawler.Block()
+	crawler.Finish()
 }
