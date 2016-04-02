@@ -185,6 +185,7 @@ func (c *Crawler) newErrorHandler() fetchbot.Handler {
 		c.Logger.WithFields(logrus.Fields{
 			"url":    ctx.Cmd.URL(),
 			"method": ctx.Cmd.Method(),
+			"ip":     res.Header.Get("X-ProxyMesh-IP"),
 		}).Error(err)
 	})
 }
@@ -198,6 +199,7 @@ func (c *Crawler) newRequestHandler() fetchbot.Handler {
 				"status":       res.StatusCode,
 				"content_type": res.Header.Get("Content-Type"),
 				"depth":        context.Depth(),
+				"ip":           res.Header.Get("X-ProxyMesh-IP"),
 			}).Info(context.URL())
 		}
 		c.mux.Handle(ctx, res, err)
@@ -212,6 +214,7 @@ func (c *Crawler) newHTMLHandler(procs ...Processor) fetchbot.Handler {
 			c.Logger.WithFields(logrus.Fields{
 				"url":    context.URL(),
 				"method": context.Method(),
+				"ip":     res.Header.Get("X-ProxyMesh-IP"),
 			}).Error(err)
 			return
 		}
