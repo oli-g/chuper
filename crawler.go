@@ -1,6 +1,8 @@
 package chuper
 
 import (
+	"bytes"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -138,7 +140,7 @@ func (c *Crawler) Match(r *ResponseCriteria) *fetchbot.ResponseMatcher {
 
 func (c *Crawler) Register(rc *ResponseCriteria, procs ...Processor) {
 	m := c.Match(rc)
-	h := c.newHTMLHandler(procs...)
+	h := c.newHandler(procs...)
 	m.Handler(h)
 }
 
@@ -204,10 +206,21 @@ func (c *Crawler) newRequestHandler() fetchbot.Handler {
 	})
 }
 
-func (c *Crawler) newHTMLHandler(procs ...Processor) fetchbot.Handler {
+func (c *Crawler) newHandler(procs ...Processor) fetchbot.Handler {
 	return fetchbot.HandlerFunc(func(ctx *fetchbot.Context, res *http.Response, err error) {
 		context := &Ctx{ctx, c.Cache, c.Logger}
-		doc, err := goquery.NewDocumentFromResponse(res)
+
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			c.Logger.WithFields(logrus.Fields{
+				"url":    context.URL(),
+				"method": context.Method(),
+			}).Error(err)
+			return
+		}
+		defer res.Body.Close()
+
+		doc, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
 		if err != nil {
 			c.Logger.WithFields(logrus.Fields{
 				"url":    context.URL(),
@@ -217,7 +230,7 @@ func (c *Crawler) newHTMLHandler(procs ...Processor) fetchbot.Handler {
 		}
 
 		for _, p := range procs {
-			ok := p.Process(context, doc)
+			ok := p.Process(context, body, doc)
 			if !ok {
 				return
 			}

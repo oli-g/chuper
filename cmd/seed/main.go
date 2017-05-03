@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/oli-g/chuper"
+	"github.com/sluceno/chuper"
 )
 
 var (
@@ -27,7 +27,7 @@ var (
 		Host:        "www.gazzetta.it",
 	}
 
-	firstProcessor = chuper.ProcessorFunc(func(ctx chuper.Context, doc *goquery.Document) bool {
+	firstProcessor = chuper.ProcessorFunc(func(ctx chuper.Context, body []byte, doc *goquery.Document) bool {
 		ctx.Log(map[string]interface{}{
 			"url":    ctx.URL().String(),
 			"source": ctx.SourceURL().String(),
@@ -35,7 +35,7 @@ var (
 		return true
 	})
 
-	secondProcessor = chuper.ProcessorFunc(func(ctx chuper.Context, doc *goquery.Document) bool {
+	secondProcessor = chuper.ProcessorFunc(func(ctx chuper.Context, body []byte, doc *goquery.Document) bool {
 		ctx.Log(map[string]interface{}{
 			"url":    ctx.URL().String(),
 			"source": ctx.SourceURL().String(),
@@ -44,7 +44,7 @@ var (
 
 	})
 
-	thirdProcessor = chuper.ProcessorFunc(func(ctx chuper.Context, doc *goquery.Document) bool {
+	thirdProcessor = chuper.ProcessorFunc(func(ctx chuper.Context, body []byte, doc *goquery.Document) bool {
 		ctx.Log(map[string]interface{}{
 			"url":    ctx.URL().String(),
 			"source": ctx.SourceURL().String(),
